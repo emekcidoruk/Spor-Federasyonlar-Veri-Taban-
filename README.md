@@ -89,7 +89,7 @@ Futbol puan durumunda takımlar;
 
 bilgileriyle görüntülenmektedir.
 
-![Futbol Puan Durumu](./futbol_puan_durumu.png)
+![Futbol Puan Durumu]("C:\Users\doruk\OneDrive\Masaüstü\StajProje\StajProje\Spor_Federasyonlari_Analiz\futbol_puan_durumu.png")
 
 ---
 
@@ -107,7 +107,7 @@ Basketbol puan durumunda;
 
 bilgileri görüntülenmektedir.
 
-![Basketbol Puan Durumu](./basketbol_puan_durumu.png)
+![Basketbol Puan Durumu]("C:\Users\doruk\OneDrive\Masaüstü\StajProje\StajProje\Spor_Federasyonlari_Analiz\basketbol_puan_durumu.png")
 
 ---
 
@@ -125,7 +125,7 @@ Voleybol puan durumunda;
 
 bilgileri görüntülenmektedir.
 
-![Voleybol Puan Durumu](./voleybol_puan_durumu.png)
+![Voleybol Puan Durumu]("C:\Users\doruk\OneDrive\Masaüstü\StajProje\StajProje\Spor_Federasyonlari_Analiz\voleybol_puan_durumu.png")
 
 ---
 
@@ -141,7 +141,7 @@ Görüntülenen bilgiler:
 - müsabaka alanı
 - maç sonucu
 
-![Fikstür](./fikstur.png)
+![Fikstür]("C:\Users\doruk\OneDrive\Masaüstü\StajProje\StajProje\Spor_Federasyonlari_Analiz\fikstur.png")
 
 ---
 
@@ -164,7 +164,7 @@ Görüntülenen bilgiler arasında:
 
 bulunmaktadır.
 
-![Skor Log](./skor_log.png)
+![Skor Log]("C:\Users\doruk\OneDrive\Masaüstü\StajProje\StajProje\Spor_Federasyonlari_Analiz\skor_log.png")
 
 ---
 
@@ -186,7 +186,7 @@ Ceza Log ekranında;
 
 gibi bilgiler görüntülenmektedir.
 
-![Ceza Log](./ceza_log.png)
+![Ceza Log]("C:\Users\doruk\OneDrive\Masaüstü\StajProje\StajProje\Spor_Federasyonlari_Analiz\ceza_log.png")
 
 ---
 
