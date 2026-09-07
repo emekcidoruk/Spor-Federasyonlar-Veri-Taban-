@@ -89,7 +89,8 @@ Futbol puan durumunda takımlar;
 
 bilgileriyle görüntülenmektedir.
 
-![Futbol Puan Durumu]("C:\Users\doruk\OneDrive\Masaüstü\StajProje\StajProje\Spor_Federasyonlari_Analiz\futbol_puan_durumu.png")
+![Futbol Puan Durumu](<img width="2547" height="2162" alt="futbol_puan_durumu" src="https://github.com/user-attachments/assets/5c89dff1-ca08-4632-8a4f-5ce91dc3ed58" />
+)
 
 ---
 
@@ -107,7 +108,8 @@ Basketbol puan durumunda;
 
 bilgileri görüntülenmektedir.
 
-![Basketbol Puan Durumu]("C:\Users\doruk\OneDrive\Masaüstü\StajProje\StajProje\Spor_Federasyonlari_Analiz\basketbol_puan_durumu.png")
+![Basketbol Puan Durumu](<img width="2547" height="1994" alt="basketbol_puan_durumu" src="https://github.com/user-attachments/assets/216d8122-1ba5-4b01-8623-e45cdd789bbe" />
+)
 
 ---
 
@@ -125,7 +127,8 @@ Voleybol puan durumunda;
 
 bilgileri görüntülenmektedir.
 
-![Voleybol Puan Durumu]("C:\Users\doruk\OneDrive\Masaüstü\StajProje\StajProje\Spor_Federasyonlari_Analiz\voleybol_puan_durumu.png")
+![Voleybol Puan Durumu](<img width="2547" height="1826" alt="voleybol_puan_durumu" src="https://github.com/user-attachments/assets/d1a9967e-f0de-4179-a472-afafbf84db46" />
+)
 
 ---
 
@@ -141,7 +144,8 @@ Görüntülenen bilgiler:
 - müsabaka alanı
 - maç sonucu
 
-![Fikstür]("C:\Users\doruk\OneDrive\Masaüstü\StajProje\StajProje\Spor_Federasyonlari_Analiz\fikstur.png")
+![Fikstür](<img width="2826" height="1413" alt="fikstur" src="https://github.com/user-attachments/assets/b7e9a9c0-6782-4a7e-9176-f5102a6d43c4" />
+)
 
 ---
 
@@ -164,7 +168,8 @@ Görüntülenen bilgiler arasında:
 
 bulunmaktadır.
 
-![Skor Log]("C:\Users\doruk\OneDrive\Masaüstü\StajProje\StajProje\Spor_Federasyonlari_Analiz\skor_log.png")
+![Skor Log](<img width="4221" height="2178" alt="skor_log" src="https://github.com/user-attachments/assets/99bda4b1-eb04-43cb-971f-31e549a54484" />
+)
 
 ---
 
@@ -186,7 +191,8 @@ Ceza Log ekranında;
 
 gibi bilgiler görüntülenmektedir.
 
-![Ceza Log]("C:\Users\doruk\OneDrive\Masaüstü\StajProje\StajProje\Spor_Federasyonlari_Analiz\ceza_log.png")
+![Ceza Log](<img width="4918" height="2331" alt="ceza_log" src="https://github.com/user-attachments/assets/178a7ef3-48b2-4a87-8654-db3db73409a6" />
+)
 
 ---
 
