@@ -1,0 +1,371 @@
+CREATE OR REPLACE TRIGGER TRG_FIKSTUR_MAC_SONUCU
+
+FOR UPDATE OF MAC_SONUCU
+ON DE_FIKSTUR
+
+COMPOUND TRIGGER
+
+
+    TYPE T_SET IS TABLE OF BOOLEAN
+        INDEX BY PLS_INTEGER;
+
+
+    V_DEGISEN     T_SET;
+
+    V_ILK_BITIS   T_SET;
+
+    V_YENIDEN_AC  T_SET;
+
+    V_LIGLER      T_SET;
+
+
+
+    /* =====================================================
+       SONUC FORMAT KONTROLU
+       ===================================================== */
+
+    BEFORE EACH ROW IS
+
+        V_EV  NUMBER;
+        V_DEP NUMBER;
+
+    BEGIN
+
+        IF UPPER(TRIM(:NEW.MAC_SONUCU))
+           <> 'OYNANMADI'
+        THEN
+
+
+            IF NOT REGEXP_LIKE(
+                TRIM(:NEW.MAC_SONUCU),
+                '^[0-9]+-[0-9]+$'
+            )
+            THEN
+
+                RAISE_APPLICATION_ERROR(
+                    -20500,
+                    'Gecersiz mac sonucu formati.'
+                );
+
+            END IF;
+
+
+            V_EV :=
+                TO_NUMBER(
+                    REGEXP_SUBSTR(
+                        :NEW.MAC_SONUCU,
+                        '^[0-9]+'
+                    )
+                );
+
+
+            V_DEP :=
+                TO_NUMBER(
+                    REGEXP_SUBSTR(
+                        :NEW.MAC_SONUCU,
+                        '[0-9]+$'
+                    )
+                );
+
+
+            /* Basketbol beraberlik olmaz */
+
+            IF :NEW.FEDERASYON_ID = 2
+               AND
+               V_EV = V_DEP
+            THEN
+
+                RAISE_APPLICATION_ERROR(
+                    -20501,
+                    'Basketbol maci beraberlikle bitemez.'
+                );
+
+            END IF;
+
+
+            /* Voleybol final sonucu */
+
+            IF :NEW.FEDERASYON_ID = 3 THEN
+
+                IF NOT (
+
+                    (
+                        V_EV = 3
+                        AND
+                        V_DEP BETWEEN 0 AND 2
+                    )
+
+                    OR
+
+                    (
+                        V_DEP = 3
+                        AND
+                        V_EV BETWEEN 0 AND 2
+                    )
+
+                )
+                THEN
+
+                    RAISE_APPLICATION_ERROR(
+                        -20502,
+                        'Gecersiz voleybol sonucu.'
+                    );
+
+                END IF;
+
+            END IF;
+
+
+        END IF;
+
+    END BEFORE EACH ROW;
+
+
+
+    /* =====================================================
+       DEGISEN MACLARI HAFIZAYA AL
+       ===================================================== */
+
+    AFTER EACH ROW IS
+
+    BEGIN
+
+        IF NVL(:OLD.MAC_SONUCU, '#')
+           <>
+           NVL(:NEW.MAC_SONUCU, '#')
+        THEN
+
+
+            V_DEGISEN(
+                :NEW.FIKSTUR_ID
+            ) := TRUE;
+
+
+            V_LIGLER(
+                :NEW.LIG_ID
+            ) := TRUE;
+
+
+
+            /* MAÇ ÝLK KEZ BÝTTÝ */
+
+            IF UPPER(TRIM(:OLD.MAC_SONUCU))
+                   = 'OYNANMADI'
+
+               AND
+
+               UPPER(TRIM(:NEW.MAC_SONUCU))
+                   <> 'OYNANMADI'
+            THEN
+
+                V_ILK_BITIS(
+                    :NEW.FIKSTUR_ID
+                ) := TRUE;
+
+            END IF;
+
+
+
+            /* SONUÇ GERÝ OYNANMADI YAPILIRSA */
+
+            IF UPPER(TRIM(:OLD.MAC_SONUCU))
+                   <> 'OYNANMADI'
+
+               AND
+
+               UPPER(TRIM(:NEW.MAC_SONUCU))
+                   = 'OYNANMADI'
+            THEN
+
+                V_YENIDEN_AC(
+                    :NEW.FIKSTUR_ID
+                ) := TRUE;
+
+            END IF;
+
+
+        END IF;
+
+    END AFTER EACH ROW;
+
+
+
+    /* =====================================================
+       UPDATE TAMAMLANDIKTAN SONRA
+       ===================================================== */
+
+    AFTER STATEMENT IS
+
+        V_FIKSTUR_ID NUMBER;
+
+        V_LIG_ID NUMBER;
+
+    BEGIN
+
+        V_FIKSTUR_ID :=
+            V_DEGISEN.FIRST;
+
+
+
+        WHILE V_FIKSTUR_ID
+              IS NOT NULL
+        LOOP
+
+
+            /* =============================================
+               MAÇ TEKRAR OYNANMADI YAPILDIYSA
+               ============================================= */
+
+            IF V_YENIDEN_AC.EXISTS(
+                V_FIKSTUR_ID
+            )
+            THEN
+
+
+                DELETE FROM DE_SKOR_LOG
+
+                WHERE FIKSTUR_ID =
+                      V_FIKSTUR_ID;
+
+
+                DELETE FROM DE_CEZA_LOG
+
+                WHERE FIKSTUR_ID =
+                      V_FIKSTUR_ID;
+
+
+
+                /* Hakemleri tekrar atanmýþ yap */
+
+                UPDATE DE_HAKEMLER H
+
+                SET
+                    H.HAKEM_ATANMA =
+                        'ATANDI',
+
+                    H.ISLEM_TARIHI =
+                        SYSDATE
+
+                WHERE H.HAKEM_ID IN (
+
+                    SELECT FH.HAKEM_ID
+
+                    FROM DE_FIKSTUR_HAKEM FH
+
+                    WHERE FH.FIKSTUR_ID =
+                          V_FIKSTUR_ID
+
+                );
+
+
+
+            ELSE
+
+
+                /* =========================================
+                   SKOR LOG
+                   ========================================= */
+
+                DE_SKOR_LOG_YENIDEN_OLUSTUR(
+                    V_FIKSTUR_ID
+                );
+
+
+
+                /* =========================================
+                   ÝLK KEZ BÝTTÝYSE
+                   ========================================= */
+
+                IF V_ILK_BITIS.EXISTS(
+                    V_FIKSTUR_ID
+                )
+                THEN
+
+
+                    /* Ceza log */
+
+                    DE_CEZA_LOG_OLUSTUR(
+                        V_FIKSTUR_ID
+                    );
+
+
+
+                    /* =====================================
+                       KRITIK KISIM
+
+                       MAC BITTI ->
+                       HAKEM_ATANMA = ATANMADI
+
+                       GELECEK MAC KONTROLU YOK.
+                       ===================================== */
+
+                    UPDATE DE_HAKEMLER H
+
+                    SET
+                        H.HAKEM_ATANMA =
+                            'ATANMADI',
+
+                        H.ISLEM_TARIHI =
+                            SYSDATE
+
+                    WHERE H.HAKEM_ID IN (
+
+                        SELECT FH.HAKEM_ID
+
+                        FROM DE_FIKSTUR_HAKEM FH
+
+                        WHERE FH.FIKSTUR_ID =
+                              V_FIKSTUR_ID
+
+                    );
+
+
+                END IF;
+
+
+            END IF;
+
+
+
+            V_FIKSTUR_ID :=
+                V_DEGISEN.NEXT(
+                    V_FIKSTUR_ID
+                );
+
+
+        END LOOP;
+
+
+
+        /* =================================================
+           PUAN DURUMLARINI EN SON HESAPLA
+           ================================================= */
+
+        V_LIG_ID :=
+            V_LIGLER.FIRST;
+
+
+        WHILE V_LIG_ID
+              IS NOT NULL
+        LOOP
+
+
+            DE_PUAN_DURUMU_HESAPLA(
+                V_LIG_ID
+            );
+
+
+            V_LIG_ID :=
+                V_LIGLER.NEXT(
+                    V_LIG_ID
+                );
+
+
+        END LOOP;
+
+
+    END AFTER STATEMENT;
+
+
+END TRG_FIKSTUR_MAC_SONUCU;
+/

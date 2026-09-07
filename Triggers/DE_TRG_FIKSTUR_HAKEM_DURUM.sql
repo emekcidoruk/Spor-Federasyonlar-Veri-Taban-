@@ -1,0 +1,91 @@
+CREATE OR REPLACE TRIGGER TRG_FIKSTUR_HAKEM_DURUM
+
+FOR INSERT OR DELETE
+ON DE_FIKSTUR_HAKEM
+
+COMPOUND TRIGGER
+
+
+    TYPE T_HAKEM_SET IS TABLE OF BOOLEAN
+        INDEX BY PLS_INTEGER;
+
+    V_HAKEMLER T_HAKEM_SET;
+
+
+
+    AFTER EACH ROW IS
+    BEGIN
+
+        IF INSERTING THEN
+
+            V_HAKEMLER(
+                :NEW.HAKEM_ID
+            ) := TRUE;
+
+        ELSIF DELETING THEN
+
+            V_HAKEMLER(
+                :OLD.HAKEM_ID
+            ) := TRUE;
+
+        END IF;
+
+    END AFTER EACH ROW;
+
+
+
+    AFTER STATEMENT IS
+
+        V_HAKEM_ID NUMBER;
+        V_ACIK_MAC NUMBER;
+
+    BEGIN
+
+        V_HAKEM_ID :=
+            V_HAKEMLER.FIRST;
+
+
+        WHILE V_HAKEM_ID IS NOT NULL LOOP
+
+
+            SELECT COUNT(*)
+            INTO V_ACIK_MAC
+
+            FROM DE_FIKSTUR_HAKEM FH
+
+            JOIN DE_FIKSTUR F
+                ON F.FIKSTUR_ID =
+                   FH.FIKSTUR_ID
+
+            WHERE FH.HAKEM_ID =
+                  V_HAKEM_ID
+
+              AND UPPER(TRIM(F.MAC_SONUCU))
+                  = 'OYNANMADI';
+
+
+            UPDATE DE_HAKEMLER
+
+            SET HAKEM_ATANMA =
+                CASE
+                    WHEN V_ACIK_MAC > 0
+                        THEN 'ATANDI'
+                    ELSE 'ATANMADI'
+                END
+
+            WHERE HAKEM_ID =
+                  V_HAKEM_ID;
+
+
+            V_HAKEM_ID :=
+                V_HAKEMLER.NEXT(
+                    V_HAKEM_ID
+                );
+
+        END LOOP;
+
+    END AFTER STATEMENT;
+
+
+END TRG_FIKSTUR_HAKEM_DURUM;
+/

@@ -1,0 +1,235 @@
+CREATE OR REPLACE PROCEDURE DE_CEZA_LOG_OLUSTUR (
+    P_FIKSTUR_ID IN NUMBER
+)
+AS
+
+    V_FED_ID NUMBER;
+
+    V_EV_ID NUMBER;
+    V_DEP_ID NUMBER;
+
+    V_TAKIM_ID NUMBER;
+
+    V_MAC_TARIHI DATE;
+
+    V_MAC_SONUCU VARCHAR2(50);
+
+    V_OYUNCU NUMBER;
+
+    V_CEZA_TURU_ID NUMBER;
+
+    V_CEZA_SAYISI NUMBER;
+
+    V_TOPLAM_SET NUMBER := 1;
+
+
+BEGIN
+
+    SELECT
+        FEDERASYON_ID,
+        EV_SAHIBI_TAKIM_ID,
+        DEPLASMAN_TAKIM_ID,
+        MAC_TARIHI,
+        MAC_SONUCU
+
+    INTO
+        V_FED_ID,
+        V_EV_ID,
+        V_DEP_ID,
+        V_MAC_TARIHI,
+        V_MAC_SONUCU
+
+    FROM DE_FIKSTUR
+
+    WHERE FIKSTUR_ID =
+          P_FIKSTUR_ID;
+
+
+
+    DELETE FROM DE_CEZA_LOG
+    WHERE FIKSTUR_ID =
+          P_FIKSTUR_ID;
+
+
+
+    /* 0 - 2 arasý ceza */
+
+    V_CEZA_SAYISI :=
+        TRUNC(
+            DBMS_RANDOM.VALUE(0,3)
+        );
+
+
+    IF V_FED_ID = 3 THEN
+
+        V_TOPLAM_SET :=
+
+            TO_NUMBER(
+                REGEXP_SUBSTR(
+                    V_MAC_SONUCU,
+                    '^[0-9]+'
+                )
+            )
+
+            +
+
+            TO_NUMBER(
+                REGEXP_SUBSTR(
+                    V_MAC_SONUCU,
+                    '[0-9]+$'
+                )
+            );
+
+    END IF;
+
+
+
+    FOR I IN 1..V_CEZA_SAYISI LOOP
+
+
+        IF DBMS_RANDOM.VALUE(0,1) < 0.5 THEN
+
+            V_TAKIM_ID :=
+                V_EV_ID;
+
+        ELSE
+
+            V_TAKIM_ID :=
+                V_DEP_ID;
+
+        END IF;
+
+
+
+        SELECT OYUNCU_LISANS_NO
+        INTO V_OYUNCU
+
+        FROM (
+
+            SELECT OYUNCU_LISANS_NO
+
+            FROM DE_OYUNCULAR
+
+            WHERE TAKIM_ID =
+                  V_TAKIM_ID
+
+            ORDER BY DBMS_RANDOM.VALUE
+
+        )
+
+        WHERE ROWNUM = 1;
+
+
+
+        BEGIN
+
+            SELECT CEZA_TURU_ID
+            INTO V_CEZA_TURU_ID
+
+            FROM (
+
+                SELECT CEZA_TURU_ID
+
+                FROM DE_CEZA_TURU
+
+                WHERE FEDERASYON_ID =
+                      V_FED_ID
+
+                ORDER BY DBMS_RANDOM.VALUE
+
+            )
+
+            WHERE ROWNUM = 1;
+
+
+        EXCEPTION
+
+            WHEN NO_DATA_FOUND THEN
+
+                RAISE_APPLICATION_ERROR(
+                    -20300,
+                    'FEDERASYON_ID=' ||
+                    V_FED_ID ||
+                    ' icin ceza turu bulunamadi.'
+                );
+
+        END;
+
+
+
+        INSERT INTO DE_CEZA_LOG (
+
+            FEDERASYON_ID,
+            FIKSTUR_ID,
+            MAC_TARIHI,
+
+            OYUNCU_LISANS_NO,
+            TAKIM_ID,
+
+            CEZA_TURU_ID,
+
+            DAKIKA,
+            PERIYOT_SET,
+
+            ACIKLAMA
+
+        )
+        VALUES (
+
+            V_FED_ID,
+            P_FIKSTUR_ID,
+            V_MAC_TARIHI,
+
+            V_OYUNCU,
+            V_TAKIM_ID,
+
+            V_CEZA_TURU_ID,
+
+
+            CASE
+
+                WHEN V_FED_ID = 1
+                    THEN TRUNC(
+                        DBMS_RANDOM.VALUE(1,91)
+                    )
+
+                WHEN V_FED_ID = 2
+                    THEN TRUNC(
+                        DBMS_RANDOM.VALUE(1,11)
+                    )
+
+                ELSE NULL
+
+            END,
+
+
+            CASE
+
+                WHEN V_FED_ID = 2
+                    THEN TRUNC(
+                        DBMS_RANDOM.VALUE(1,5)
+                    )
+
+                WHEN V_FED_ID = 3
+                    THEN TRUNC(
+                        DBMS_RANDOM.VALUE(
+                            1,
+                            V_TOPLAM_SET + 1
+                        )
+                    )
+
+                ELSE NULL
+
+            END,
+
+
+            'Otomatik olusturulan mac sonu ceza kaydi'
+
+        );
+
+
+    END LOOP;
+
+
+END DE_CEZA_LOG_OLUSTUR;
+/
