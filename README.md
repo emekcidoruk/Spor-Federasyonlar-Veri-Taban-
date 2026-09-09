@@ -752,7 +752,7 @@ username = "YOUR_USERNAME"
 
 # 👨‍💻 Geliştirici
 
-**Ad Soyad**  
+**Doruk Emekçi**  
 Bilgisayar Mühendisliği
 
 GitHub:
